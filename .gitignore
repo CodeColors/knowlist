@@ -1,10 +1,10 @@
-node_modules/
-dist/
-data/
 *.db
-*.db-wal
 *.db-shm
+*.db-wal
 .env
-test-results/
-playwright-report/
 coverage/
+data/
+dist/
+node_modules/
+playwright-report/
+test-results/

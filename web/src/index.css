@@ -1,0 +1,256 @@
+@import 'tailwindcss';
+@import '@fontsource-variable/fraunces/wght.css';
+
+@custom-variant dark (&:where([data-theme='dark'], [data-theme='dark'] *));
+
+/* Palette « carnet de révision » : crème, terracotta, vert sauge. Contrastes vérifiés AA (texte ≥ 4,5:1). */
+:root {
+  --bg: #fbf6ee;
+  --surface: #fffdf9;
+  --surface-2: #f4ece0;
+  --ink: #2e2a26;
+  --ink-soft: #5f564d;
+  --line: #e6dccd;
+  --accent: #a84a2c;
+  --accent-soft: #f6e1d7;
+  --accent-ink: #ffffff;
+  --sage: #7f9a72;
+  --sage-ink: #3f5c38;
+  --sage-soft: #e5ecdf;
+  --danger: #b3261e;
+  --danger-soft: #fbe4e1;
+  --ok: #2f6b3a;
+  --ok-soft: #e1efe2;
+  --warn: #8a5a00;
+  --warn-soft: #fbefd5;
+  --shadow: 0 1px 2px rgb(60 40 20 / 0.06), 0 4px 16px rgb(60 40 20 / 0.06);
+  --shadow-lg: 0 2px 4px rgb(60 40 20 / 0.06), 0 12px 32px rgb(60 40 20 / 0.12);
+  color-scheme: light;
+}
+
+[data-theme='dark'] {
+  --bg: #1d1916;
+  --surface: #27221e;
+  --surface-2: #322b26;
+  --ink: #f3ece3;
+  --ink-soft: #c4b8aa;
+  --line: #463d36;
+  --accent: #e5906f;
+  --accent-soft: #4a2e24;
+  --accent-ink: #1d1916;
+  --sage: #9db78f;
+  --sage-ink: #b9d2ab;
+  --sage-soft: #2f3a2b;
+  --danger: #f2a49c;
+  --danger-soft: #4a2320;
+  --ok: #9fd3a6;
+  --ok-soft: #233a27;
+  --warn: #f0c46c;
+  --warn-soft: #43361a;
+  --shadow: 0 1px 2px rgb(0 0 0 / 0.3), 0 4px 16px rgb(0 0 0 / 0.25);
+  --shadow-lg: 0 2px 4px rgb(0 0 0 / 0.3), 0 12px 32px rgb(0 0 0 / 0.4);
+  color-scheme: dark;
+}
+
+@theme inline {
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-ink: var(--ink);
+  --color-ink-soft: var(--ink-soft);
+  --color-line: var(--line);
+  --color-accent: var(--accent);
+  --color-accent-soft: var(--accent-soft);
+  --color-accent-ink: var(--accent-ink);
+  --color-sage: var(--sage);
+  --color-sage-ink: var(--sage-ink);
+  --color-sage-soft: var(--sage-soft);
+  --color-danger: var(--danger);
+  --color-danger-soft: var(--danger-soft);
+  --color-ok: var(--ok);
+  --color-ok-soft: var(--ok-soft);
+  --color-warn: var(--warn);
+  --color-warn-soft: var(--warn-soft);
+  --font-display: 'Fraunces Variable', Georgia, 'Times New Roman', serif;
+  --font-sans: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  --shadow-soft: var(--shadow);
+  --shadow-lift: var(--shadow-lg);
+}
+
+
+html {
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--font-sans);
+  font-size: 100%;
+  -webkit-text-size-adjust: 100%;
+  -webkit-tap-highlight-color: transparent;
+}
+body {
+  font-size: 1rem; /* 16 px minimum */
+  line-height: 1.6;
+  min-height: 100dvh;
+}
+[data-dyslexia='true'] body,
+[data-dyslexia='true'] input,
+[data-dyslexia='true'] textarea,
+[data-dyslexia='true'] button,
+[data-dyslexia='true'] select {
+  font-family: 'OpenDyslexic', var(--font-sans);
+  letter-spacing: 0.02em;
+  line-height: 1.75;
+}
+[data-dyslexia='true'] .font-display {
+  font-family: 'OpenDyslexic', var(--font-sans);
+}
+
+h1, h2, h3 {
+  font-family: var(--font-display);
+  line-height: 1.2;
+  letter-spacing: -0.01em;
+}
+
+:focus-visible {
+  outline: 3px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: 6px;
+}
+
+::selection {
+  background: var(--accent-soft);
+}
+
+@utility btn {
+  @apply inline-flex min-h-11 items-center justify-center gap-2 rounded-xl px-4 py-2 font-semibold transition select-none disabled:cursor-not-allowed disabled:opacity-50;
+}
+@utility btn-primary {
+  @apply btn bg-accent text-accent-ink shadow-soft hover:brightness-110 active:brightness-95;
+}
+@utility btn-secondary {
+  @apply btn border border-line bg-surface text-ink hover:bg-surface-2;
+}
+@utility btn-ghost {
+  @apply btn text-ink hover:bg-surface-2;
+}
+@utility btn-danger {
+  @apply btn bg-danger text-white hover:brightness-110 dark:text-bg;
+}
+@utility btn-icon {
+  @apply inline-flex size-11 shrink-0 items-center justify-center rounded-xl text-ink-soft transition hover:bg-surface-2 hover:text-ink;
+}
+@utility card {
+  @apply rounded-2xl border border-line bg-surface shadow-soft;
+}
+@utility input {
+  @apply min-h-11 w-full rounded-xl border border-line bg-surface px-3 py-2 text-ink placeholder:text-ink-soft/70 focus:border-accent focus:outline-none focus-visible:outline-2 focus-visible:outline-accent;
+}
+@utility label {
+  @apply mb-1 block text-sm font-semibold text-ink-soft;
+}
+@utility chip {
+  @apply inline-flex min-h-9 items-center gap-1 rounded-full border border-line bg-surface px-3 text-sm text-ink-soft;
+}
+@utility link {
+  @apply font-semibold text-accent underline decoration-2 underline-offset-2 hover:no-underline;
+}
+
+/* Retournement de carte */
+.flip {
+  perspective: 1400px;
+}
+.flip-inner {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  transition: transform 0.45s cubic-bezier(0.3, 0.7, 0.3, 1);
+  transform-style: preserve-3d;
+}
+.flip-inner.is-flipped {
+  transform: rotateY(180deg);
+}
+.flip-face {
+  position: absolute;
+  inset: 0;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+.flip-back {
+  transform: rotateY(180deg);
+}
+
+@keyframes pop-in {
+  from { opacity: 0; transform: translateY(6px) scale(0.98); }
+  to { opacity: 1; transform: none; }
+}
+.pop-in { animation: pop-in 0.25s ease-out both; }
+
+@keyframes shake {
+  10%, 90% { transform: translateX(-1px); }
+  20%, 80% { transform: translateX(2px); }
+  30%, 50%, 70% { transform: translateX(-4px); }
+  40%, 60% { transform: translateX(4px); }
+}
+.shake { animation: shake 0.4s both; }
+
+@keyframes confetti-fall {
+  0% { transform: translate3d(0, -10vh, 0) rotate(0deg); opacity: 1; }
+  100% { transform: translate3d(var(--dx), 70vh, 0) rotate(540deg); opacity: 0; }
+}
+.confetti-piece {
+  position: fixed;
+  top: 0;
+  width: 10px;
+  height: 14px;
+  border-radius: 3px;
+  animation: confetti-fall 1.8s ease-in forwards;
+  pointer-events: none;
+  z-index: 60;
+}
+
+/* « Réduire les animations » : préférence système OU réglage KnowList. */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+  .confetti-piece { display: none; }
+}
+[data-reduce-motion='true'] *,
+[data-reduce-motion='true'] *::before,
+[data-reduce-motion='true'] *::after {
+  animation-duration: 0.001ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.001ms !important;
+}
+[data-reduce-motion='true'] .confetti-piece { display: none; }
+[data-reduce-motion='true'] .flip-inner.is-flipped { transform: none; }
+[data-reduce-motion='true'] .flip-inner.is-flipped .flip-front { visibility: hidden; }
+[data-reduce-motion='true'] .flip-inner.is-flipped .flip-back { transform: none; }
+
+.row-auto {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 120px;
+}
+
+@media print {
+  .no-print { display: none !important; }
+  html, body { background: #fff; color: #000; }
+}
+
+/* Échelle séquentielle (une teinte sauge, clair → foncé) pour le calendrier d'activité. */
+:root {
+  --heat-0: #efe7da;
+  --heat-1: #d5e2cc;
+  --heat-2: #a9c49b;
+  --heat-3: #6f8d62;
+  --heat-4: #3f5c38;
+}
+[data-theme='dark'] {
+  --heat-0: #322b26;
+  --heat-1: #3d4a37;
+  --heat-2: #5a7350;
+  --heat-3: #86a378;
+  --heat-4: #b9d2ab;
+}

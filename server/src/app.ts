@@ -31,7 +31,6 @@ export const CSP = [
   "base-uri 'none'",
   "form-action 'self'",
   "frame-ancestors 'none'",
-  'upgrade-insecure-requests',
 ].join('; ');
 
 /** Pages accessibles sans session (tout le reste redirige vers la connexion). */
@@ -51,7 +50,7 @@ export async function buildApp(cfg: Config, opts: { logger?: boolean } = {}): Pr
 
   // En-têtes de sécurité sur toutes les réponses.
   app.addHook('onSend', async (req, reply, payload) => {
-    reply.header('Content-Security-Policy', CSP);
+    reply.header('Content-Security-Policy', cfg.cookieSecure ? `${CSP}; upgrade-insecure-requests` : CSP);
     reply.header('X-Content-Type-Options', 'nosniff');
     reply.header('Referrer-Policy', 'same-origin');
     reply.header('X-Frame-Options', 'DENY');
@@ -122,7 +121,7 @@ export async function buildApp(cfg: Config, opts: { logger?: boolean } = {}): Pr
 
   app.setNotFoundHandler(async (req, reply) => {
     const urlPath = req.url.split('?')[0];
-    if (urlPath.startsWith('/api/') || req.method !== 'GET' || !hasWeb) {
+    if (urlPath.startsWith('/api/') || (req.method !== 'GET' && req.method !== 'HEAD') || !hasWeb) {
       return sendError(reply, new HttpError(404, 'Page introuvable.', 'not_found'));
     }
     // Pages de l'application : sans session valide, redirection vers la connexion.

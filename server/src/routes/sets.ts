@@ -400,7 +400,7 @@ export default async function setRoutes(app: FastifyInstance) {
     reply
       .header('Content-Type', format === 'csv' ? 'text/csv; charset=utf-8' : 'text/tab-separated-values; charset=utf-8')
       .header('Content-Disposition', `attachment; filename="${safeName}.${format}"`);
-    return '﻿' + lines.join('\r\n');
+    return '\ufeff' + lines.join('\r\n');
   });
 
   // --- Annuaire pour le partage (utilisateurs actifs du site) ---
