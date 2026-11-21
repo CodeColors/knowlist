@@ -140,3 +140,36 @@ test('thème sombre et page de connexion', async ({ page }, info) => {
   await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark');
   await page.screenshot({ path: `test-results/shot-${info.project.name}-login-dark.png` });
 });
+
+test('révision hors ligne puis synchronisation au retour du réseau', async ({ page, context }, info) => {
+  test.skip(info.project.name !== 'desktop', 'un seul passage suffit');
+  await login(page, `eleve.desktop`, `${STRONG}-eleve`);
+  await expect(page.getByRole('heading', { level: 1 })).toContainText('Élève');
+  // Le service worker s'installe et précharge l'application.
+  await page.evaluate(async () => {
+    await navigator.serviceWorker.ready;
+  });
+  await page.reload();
+  await expect.poll(() => page.evaluate(() => !!navigator.serviceWorker.controller)).toBe(true);
+  await page.getByRole('link', { name: /Anglais — test/ }).first().click();
+  await expect(page.getByRole('heading', { name: 'Anglais — test' })).toBeVisible();
+  const setUrl = page.url();
+  await page.waitForTimeout(500); // laisse le service worker finir d'écrire le set en cache
+
+  await context.setOffline(true);
+  await page.goto(`${setUrl}/etude/learn`);
+  await expect(page.getByText('Choisis la bonne réponse')).toBeVisible();
+  await page.keyboard.press('1');
+  await page.waitForTimeout(1200);
+  await page.goto(`${setUrl}/etude/flashcards`);
+  await expect(page.getByText('1 / 20')).toBeVisible();
+  await page.getByRole('button', { name: /^Je savais/ }).click();
+  await expect(page.getByText('2 / 20')).toBeVisible();
+  await page.waitForTimeout(1800);
+  const pending = await page.evaluate(() => JSON.parse(localStorage.getItem('kl-pending-answers') || '[]').length);
+  expect(pending).toBeGreaterThanOrEqual(1);
+
+  await context.setOffline(false);
+  await page.evaluate(() => window.dispatchEvent(new Event('online')));
+  await expect.poll(() => page.evaluate(() => JSON.parse(localStorage.getItem('kl-pending-answers') || '[]').length), { timeout: 10_000 }).toBe(0);
+});

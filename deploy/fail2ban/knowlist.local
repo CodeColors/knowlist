@@ -1,0 +1,14 @@
+[sshd]
+enabled = true
+backend = systemd
+
+[knowlist]
+enabled  = true
+backend  = systemd
+filter   = knowlist
+# Les conteneurs Docker sont joignables via la chaîne DOCKER-USER.
+banaction = iptables-multiport[chain="DOCKER-USER"]
+port     = http,https
+maxretry = 10
+findtime = 10m
+bantime  = 1h

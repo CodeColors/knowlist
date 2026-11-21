@@ -622,6 +622,23 @@ function RowOptions({ row, index, onChange, onMove }: { row: Row; index: number;
           </label>
         )}
       </div>
+      <div className="md:col-span-2">
+        <label htmlFor={`${row.key}-tags`} className="label">
+          Tags de la carte <span className="font-normal">(séparés par des virgules)</span>
+        </label>
+        <input
+          id={`${row.key}-tags`}
+          className="input"
+          defaultValue={row.tags.join(', ')}
+          placeholder="verbe, irrégulier…"
+          onBlur={(e) =>
+            onChange(
+              'tags',
+              [...new Set(e.target.value.split(',').map((t) => t.trim().replace(/^#/, '').slice(0, 32)).filter(Boolean))].slice(0, 20),
+            )
+          }
+        />
+      </div>
       <div className="flex gap-2 md:col-span-2">
         <button type="button" className="btn-ghost" onClick={() => onMove(-1)} disabled={index === 0}>
           ↑ Monter

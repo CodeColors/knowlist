@@ -304,6 +304,7 @@ function CardRow({ card, set, onStar }: { card: Card; set: SetDetail['set']; onS
             {card.definition}
           </p>
           {card.example && <p className="mt-1 text-sm text-ink-soft italic">« {card.example} »</p>}
+          {card.tags.length > 0 && <p className="mt-1 text-xs text-ink-soft">{card.tags.map((t) => `#${t}`).join(' ')}</p>}
         </div>
       </div>
       {card.image && <img src={mediaUrl(card.image)} alt="" className="size-14 shrink-0 rounded-lg object-cover" loading="lazy" />}

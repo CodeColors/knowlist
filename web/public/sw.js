@@ -7,7 +7,20 @@ const MEDIA = `${VERSION}-media`;
 const PRECACHE = ['/manifest.webmanifest', '/icon.svg', '/icon-192.png', '/theme.js'];
 
 self.addEventListener('install', (event) => {
-  event.waitUntil(caches.open(SHELL).then((c) => c.addAll(PRECACHE)).then(() => self.skipWaiting()));
+  event.waitUntil(
+    (async () => {
+      await (await caches.open(SHELL)).addAll(PRECACHE);
+      // Précharge tous les modules de l'application (modes d'étude compris) pour la révision hors ligne.
+      try {
+        const res = await fetch('/asset-manifest.json', { cache: 'no-store' });
+        const { files } = await res.json();
+        await (await caches.open(ASSETS)).addAll(files);
+      } catch {
+        /* précache partiel : les modules seront mis en cache à la première utilisation */
+      }
+      await self.skipWaiting();
+    })(),
+  );
 });
 
 self.addEventListener('activate', (event) => {
@@ -25,11 +38,11 @@ self.addEventListener('message', (event) => {
   }
 });
 
-async function networkFirst(request, cacheName) {
+async function networkFirst(event, request, cacheName) {
   const cache = await caches.open(cacheName);
   try {
     const res = await fetch(request);
-    if (res.ok) cache.put(request, res.clone());
+    if (res.ok) event.waitUntil(cache.put(request, res.clone()));
     return res;
   } catch (err) {
     const cached = await cache.match(request);
@@ -38,12 +51,12 @@ async function networkFirst(request, cacheName) {
   }
 }
 
-async function cacheFirst(request, cacheName) {
+async function cacheFirst(event, request, cacheName) {
   const cache = await caches.open(cacheName);
   const cached = await cache.match(request);
   if (cached) return cached;
   const res = await fetch(request);
-  if (res.ok) cache.put(request, res.clone());
+  if (res.ok) event.waitUntil(cache.put(request, res.clone()));
   return res;
 }
 
@@ -61,7 +74,7 @@ self.addEventListener('fetch', (event) => {
           // On ne met en cache que la coquille de l'application (pas les redirections vers la connexion).
           if (res.ok && !res.redirected && (res.headers.get('content-type') || '').includes('text/html')) {
             const cache = await caches.open(SHELL);
-            cache.put('/__shell', res.clone());
+            event.waitUntil(cache.put('/__shell', res.clone()));
           }
           return res;
         } catch {
@@ -73,16 +86,16 @@ self.addEventListener('fetch', (event) => {
     return;
   }
   if (url.pathname.startsWith('/assets/')) {
-    event.respondWith(cacheFirst(req, ASSETS));
+    event.respondWith(cacheFirst(event, req, ASSETS));
     return;
   }
   if (url.pathname.startsWith('/api/v1/media/')) {
-    event.respondWith(cacheFirst(req, MEDIA));
+    event.respondWith(cacheFirst(event, req, MEDIA));
     return;
   }
   if (url.pathname.startsWith('/api/v1/') && !url.pathname.startsWith('/api/v1/admin') && !url.pathname.includes('/export')) {
-    event.respondWith(networkFirst(req, API));
+    event.respondWith(networkFirst(event, req, API));
     return;
   }
-  if (PRECACHE.includes(url.pathname)) event.respondWith(cacheFirst(req, SHELL));
+  if (PRECACHE.includes(url.pathname)) event.respondWith(cacheFirst(event, req, SHELL));
 });

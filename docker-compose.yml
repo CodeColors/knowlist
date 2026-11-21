@@ -1,0 +1,53 @@
+# KnowList — application + reverse proxy (Caddy, HTTPS automatique).
+# La base de données est un fichier SQLite (mode WAL) stocké dans ./data : pas de conteneur de base séparé.
+name: knowlist
+
+services:
+  app:
+    image: knowlist:${KNOWLIST_TAG:-latest}
+    build: .
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      NODE_ENV: production
+      TRUST_PROXY: 'true'
+      COOKIE_SECURE: 'true'
+    volumes:
+      - ./data:/data
+    expose:
+      - '3000'
+    read_only: true
+    tmpfs:
+      - /tmp:size=512m
+    security_opt:
+      - no-new-privileges:true
+    cap_drop: [ALL]
+    mem_limit: 768m
+    logging:
+      driver: journald
+      options:
+        tag: knowlist
+
+  caddy:
+    image: caddy:2.10-alpine
+    restart: unless-stopped
+    depends_on: [app]
+    ports:
+      - '80:80'
+      - '443:443'
+      - '443:443/udp'
+    environment:
+      KNOWLIST_DOMAIN: ${KNOWLIST_DOMAIN:-knowlist.hchl.fr}
+      ACME_EMAIL: ${ACME_EMAIL:-}
+    volumes:
+      - ./deploy/Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    logging:
+      driver: journald
+      options:
+        tag: knowlist-caddy
+
+volumes:
+  caddy_data:
+  caddy_config:

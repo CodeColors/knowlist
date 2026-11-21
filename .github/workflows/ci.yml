@@ -1,0 +1,46 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Analyse statique (ESLint + TypeScript)
+        run: npm run lint
+      - name: Tests unitaires et d'intégration de l'API
+        run: npm test
+      - name: Build
+        run: npm run build
+      - name: Tests de bout en bout (Playwright)
+        run: |
+          npx playwright install --with-deps chromium
+          npx playwright test --trace off
+      - name: Audit des dépendances de production
+        run: npm audit --omit=dev --audit-level=high
+
+  docker:
+    runs-on: ubuntu-latest
+    needs: test
+    steps:
+      - uses: actions/checkout@v4
+      - name: Construction de l'image
+        run: docker build -t knowlist:ci .
+      - name: Démarrage et vérification de santé
+        run: |
+          docker run -d --name kl -e COOKIE_SECURE=false knowlist:ci
+          for i in $(seq 1 20); do docker exec kl node -e "fetch('http://127.0.0.1:3000/healthz').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))" && exit 0; sleep 1; done
+          docker logs kl; exit 1

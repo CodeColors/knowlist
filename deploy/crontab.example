@@ -1,0 +1,3 @@
+# crontab -e (utilisateur knowlist) — la sauvegarde locale est faite par l'application à BACKUP_HOUR (UTC).
+# Copie chiffrée hors site, une heure après :
+30 3 * * * cd /home/knowlist/knowlist && AGE_RECIPIENT=age1xxxx RCLONE_REMOTE=offsite:knowlist ./deploy/offsite-backup.sh >> /home/knowlist/offsite.log 2>&1

@@ -1,10 +1,16 @@
 import fs from 'node:fs';
-import os from 'node:os';
 import path from 'node:path';
 import * as tar from 'tar';
 import Database from 'better-sqlite3';
 import { closeDb, db, dbPath, openDb } from '../db.js';
 import type { Config } from '../config.js';
+
+/** Dossier temporaire sur le même disque que les données (le conteneur est en lecture seule). */
+function tmpBase(dataDir: string) {
+  const d = path.join(dataDir, '.tmp');
+  fs.mkdirSync(d, { recursive: true });
+  return d;
+}
 
 export const BACKUP_RE = /^knowlist-\d{8}-\d{6}(-[a-z]+)?\.tar\.gz$/;
 
@@ -22,7 +28,7 @@ function stamp(d = new Date()) {
 /** Sauvegarde cohérente : copie en ligne de la base SQLite + fichiers envoyés, dans une archive .tar.gz. */
 export async function createBackup(cfg: Config, label?: 'auto' | 'manual' | 'prerestore'): Promise<BackupInfo> {
   fs.mkdirSync(cfg.backupsDir, { recursive: true });
-  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'knowlist-backup-'));
+  const tmp = fs.mkdtempSync(path.join(tmpBase(cfg.dataDir), 'backup-'));
   try {
     await db().backup(path.join(tmp, 'knowlist.db'));
     const uploadsLink = path.join(tmp, 'uploads');
@@ -73,8 +79,8 @@ export function pruneBackups(cfg: Config): number {
 }
 
 /** Vérifie une archive et en extrait le contenu dans un dossier temporaire. */
-export async function extractBackup(file: string): Promise<string> {
-  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'knowlist-restore-'));
+export async function extractBackup(file: string, dataDir: string): Promise<string> {
+  const tmp = fs.mkdtempSync(path.join(tmpBase(dataDir), 'restore-'));
   try {
     await tar.extract({
       file,
@@ -104,7 +110,7 @@ export async function extractBackup(file: string): Promise<string> {
 
 /** Restaure une archive : sauvegarde de sécurité, remplacement de la base et des fichiers, réouverture + migrations. */
 export async function restoreBackup(cfg: Config, file: string, opts: { safetyBackup?: boolean } = {}): Promise<{ safety?: BackupInfo }> {
-  const extracted = await extractBackup(file);
+  const extracted = await extractBackup(file, cfg.dataDir);
   try {
     const safety = opts.safetyBackup !== false ? await createBackup(cfg, 'prerestore') : undefined;
     const target = dbPath() || cfg.dbPath;
